@@ -1,9 +1,9 @@
 {
-  "summary": "Comprehensive backend testing of Mitharva AI completed. All 31 pytest tests passed (100%). Validated 19/19 endpoints from review request including auth flow (signup/login/me), JWT protection, profile patch, full interview session lifecycle (create→turn→complete with score aggregation + total_interviews increment), Gemini 3 Flash LLM integration via Emergent key (live calls succeed, with graceful fallback verified in logs), questions filtering, current affairs sorted desc, news question generation, mock Razorpay payment + billing history, and dashboard stats with radar & chart_data. MongoDB _id never leaked. Demo user pre-seeded with 12 sessions and 10 current affairs confirmed.",
+  "summary": "Comprehensive backend testing of Mitharva AI completed. All 31 pytest tests passed (100%). Validated 19/19 endpoints from review request including auth flow (signup/login/me), JWT protection, profile patch, full interview session lifecycle (create→turn→complete with score aggregation + total_interviews increment), Gemini 3 Flash LLM integration (live calls succeed, with graceful fallback verified in logs), questions filtering, current affairs sorted desc, news question generation, mock Razorpay payment + billing history, and dashboard stats with radar & chart_data. MongoDB _id never leaked. Demo user pre-seeded with 12 sessions and 10 current affairs confirmed.",
   "backend_issues": {
     "critical": [],
     "minor": [
-      {"endpoint": "/api/sessions/turn (LLM)", "issue": "Emergent LLM key encountered a transient 'Budget exceeded' BadRequestError once during prior runs ($0.00127 cost vs $0.001 max budget). Backend fallback handled it correctly returning structured JSON. Subsequent calls succeeded — monitor budget headroom on the Emergent key."}
+      {"endpoint": "/api/sessions/turn (LLM)", "issue": "LLM key encountered a transient 'Budget exceeded' BadRequestError once during prior runs ($0.00127 cost vs $0.001 max budget). Backend fallback handled it correctly returning structured JSON. Subsequent calls succeeded — monitor budget headroom on the LLM key."}
     ]
   },
   "frontend_issues": {
@@ -16,7 +16,7 @@
     "/app/test_reports/pytest/pytest_results.xml"
   ],
   "action_items": [
-    "Optional: increase Emergent LLM key budget cap to avoid sporadic fallback responses under heavy use.",
+    "Optional: increase LLM API key budget cap to avoid sporadic fallback responses under heavy use.",
     "Optional code quality: server.py is 712 lines — consider splitting into modules (auth, sessions, questions, subscription, seed) for maintainability.",
     "Optional: /api/sessions/turn and /current-affairs/questions do not enforce that the session/news belongs to the user beyond session_id ownership check — current logic is correct, no action needed.",
     "Minor: practice/feedback session_id uses datetime.now().timestamp() — could collide; consider uuid4 for LLM session id."

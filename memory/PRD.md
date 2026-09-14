@@ -4,7 +4,7 @@
 Premium full-stack multi-page web app called **Mitharva AI** — India's first AI-powered interview preparation platform for Government Job aspirants (UPSC, SSC, Banking, Railway) and Campus Placements. Brand: navy + gold (extracted from logo). Sanskrit tagline "अभ्यासेन सिद्धिः". 13 pages including a signature live AI interview room with camera + voice + animated gold orb + 3-AI panel. Dark + light mode required.
 
 ## Architecture
-- **Backend:** FastAPI + MongoDB (`/api/*` routes). JWT auth (bcrypt). Gemini 3 Flash via Emergent Universal Key (emergentintegrations). Mock Razorpay.
+- **Backend:** FastAPI + MongoDB (`/api/*` routes). JWT auth (bcrypt). Gemini 3 Flash via LLM API key. Mock Razorpay.
 - **Frontend:** React Router v6 + Tailwind + shadcn/ui + Recharts + sonner. Web Speech API for STT/TTS (browser-native).
 - **Theme:** Dark by default; functional light toggle.
 - **Demo user:** demo@mitharva.ai / Demo@2026 (auto-seeded with 12 sessions).
@@ -52,7 +52,7 @@ Premium full-stack multi-page web app called **Mitharva AI** — India's first A
 
 ## Mocked Integrations
 - **Razorpay** — UI + backend mock-pay endpoint (no real payment processed)
-- **Voice STT/TTS** — Browser Web Speech API (not OpenAI Whisper as originally chosen, because Emergent key doesn't cover OpenAI TTS; falls back gracefully)
+- **Voice STT/TTS** — Browser Web Speech API (not OpenAI Whisper as originally chosen; falls back gracefully)
 
 ## Backlog (P1)
 - Real Whisper STT integration on backend (upload audio file to /api/voice/stt)

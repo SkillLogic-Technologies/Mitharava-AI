@@ -168,8 +168,7 @@ Mitharava-AI/
 │   └── __init__.py                   # Root-level test package init
 │
 ├── test_result.md                    # Multi-agent testing protocol & task status tracking
-├── .emergent/emergent.yml            # Emergent platform config (base image, job ID)
-├── .gitconfig                        # Repo-level git identity (emergent agent)
+├── .gitconfig                        # Repo-level git identity
 └── .gitignore                        # Comprehensive — .env, node_modules, venv, builds, caches
 ```
 
@@ -189,7 +188,7 @@ Mitharava-AI/
 | **python-dotenv** | 1.2.2 | `.env` loading |
 | **Uvicorn** | 0.25.0 | ASGI production server |
 | **Starlette CORSMiddleware** | 0.37.2 | CORS handling |
-| **emergentintegrations** | 0.1.0 | Unified LLM client — Gemini 3 Flash + Whisper |
+| **openai** | 1.99.9 | OpenAI SDK — Whisper STT |
 | **pypdf** | 6.11.0 | PDF text extraction for resume parsing |
 | **reportlab** | 4.5.1 | PDF report generation with branded layout |
 | **email-validator** | 2.3.0 | Email format validation via Pydantic `EmailStr` |
@@ -272,7 +271,7 @@ Mitharava-AI/
 ┌─────────────────────┐           ┌───────────────────────────┐
 │  MongoDB (Motor)    │           │  External AI APIs          │
 │                     │           │                            │
-│  db.users           │           │  emergentintegrations:     │
+│  db.users           │           │  External AI APIs:         │
 │  db.sessions        │           │  ├── Gemini 3 Flash        │
 │  db.questions       │           │  │   (LlmChat, stateful)  │
 │  db.current_affairs │           │  └── OpenAI Whisper        │
@@ -331,7 +330,7 @@ server.py sections:
 MONGO_URL    = os.environ['MONGO_URL']         # Required — MongoDB connection string
 DB_NAME      = os.environ['DB_NAME']           # Required — database name
 JWT_SECRET   = os.environ.get('JWT_SECRET', 'change-me')   # JWT signing secret
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '') # Gemini + Whisper access
+LLM_API_KEY      = os.environ.get('LLM_API_KEY', '')      # Gemini + Whisper access
 JWT_ALGO     = 'HS256'                         # Algorithm fixed in code
 JWT_EXP_DAYS = 30                              # Token lifetime
 ```
@@ -787,7 +786,7 @@ CRACO (Create React App Configuration Override) extends CRA without ejecting:
 2. **ESLint**: Adds `react-hooks/recommended` rules
 3. **WatchOptions**: Ignores `node_modules`, `.git`, `build`, `dist`, `coverage`, `public` to reduce memory
 4. **Health Check plugin** (optional): Activated only when `ENABLE_HEALTH_CHECK=true` env var is set
-5. **Visual Edits** (dev only): `@emergentbase/visual-edits/craco` wraps config in development — adds visual editing overlay (disabled in production builds)
+5. **Health Check plugin** (optional): Activated only when `ENABLE_HEALTH_CHECK=true` env var is set
 
 ### Webpack Health Check Plugin System
 
@@ -861,7 +860,10 @@ All 40+ shadcn components use the `new-york` style with CSS variables for themin
 | `MONGO_URL` | ✅ Yes | MongoDB connection string. `mongodb://localhost:27017` or MongoDB Atlas URI |
 | `DB_NAME` | ✅ Yes | Database name. Example: `mitharva_ai` |
 | `JWT_SECRET` | ✅ Yes | JWT signing secret. **Must be changed in production.** Minimum 32 characters recommended |
-| `EMERGENT_LLM_KEY` | ⚠️ AI features | Emergent Universal Key — provides access to Gemini 3 Flash (interview AI) and OpenAI Whisper (STT). Without it, all AI responses return mock data |
+| `LLM_API_KEY` | ⚠️ AI features | Gemini API key (Google AI Studio). Without it, all AI responses return mock data |
+| `GEMINI_MODEL` | Optional | Gemini model id used by `call_gemini`. Defaults to `gemini-2.0-flash`; this project's free-tier key uses `gemini-flash-lite-latest` (other Flash variants hit the free-tier rate limit) |
+| `ELEVENLABS_API_KEY` | ⚠️ Voice output | ElevenLabs API key for `POST /api/voice/tts` (interviewer's spoken voice). Without it, the endpoint returns a clean error and the frontend falls back to the browser's built-in `speechSynthesis` |
+| `ELEVENLABS_VOICE_ID` | Optional | ElevenLabs voice id. Defaults to the "Adam" multilingual voice (`pNInz6obpgDQGcFmaJgB`) |
 | `CORS_ORIGINS` | Optional | Comma-separated allowed origins. Defaults to `*` if not set. Example: `http://localhost:3000,https://yourapp.com` |
 
 ### Frontend (`frontend/.env`)
@@ -872,7 +874,7 @@ All 40+ shadcn components use the `new-york` style with CSS variables for themin
 
 > **Important**: The frontend uses `REACT_APP_BACKEND_URL` directly in the InterviewRoom for the Whisper STT multipart upload (uses `fetch()` instead of Axios because it's `multipart/form-data`).
 
-### Without `EMERGENT_LLM_KEY` (Mock Mode)
+### Without `LLM_API_KEY` (Mock Mode)
 
 All interview turns return this deterministic mock response:
 ```json
@@ -941,7 +943,7 @@ venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-All versions are pinned. Key packages include FastAPI, Motor, bcrypt, PyJWT, emergentintegrations, pypdf, reportlab, openai, and google-generativeai.
+All versions are pinned. Key packages include FastAPI, Motor, bcrypt, PyJWT, pypdf, reportlab, openai, and google-generativeai.
 
 #### 2c. Create environment file
 
@@ -951,7 +953,7 @@ Create `backend/.env` with the following content:
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=mitharva_ai
 JWT_SECRET=replace-this-with-a-32-char-secret-key
-EMERGENT_LLM_KEY=your-emergent-key-here
+LLM_API_KEY=your-llm-api-key-here
 CORS_ORIGINS=http://localhost:3000
 ```
 
@@ -1296,7 +1298,7 @@ Multipart form upload. Fields:
 ```json
 // Response 200
 { "text": "transcribed text here" }
-// Error 500 (no EMERGENT_LLM_KEY): "LLM key not configured"
+// Error 500 (no LLM_API_KEY): "LLM key not configured"
 ```
 
 #### `POST /api/resume/parse`
@@ -1619,7 +1621,7 @@ Used for: interview question generation, follow-up questioning, answer evaluatio
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 chat = LlmChat(
-    api_key=EMERGENT_LLM_KEY,
+    api_key=LLM_API_KEY,
     session_id=session_id,         # Stateful — Gemini maintains conversation history
     system_message=system_prompt,  # Persona + JSON format rules
 ).with_model("gemini", "gemini-3-flash-preview")
@@ -1697,7 +1699,7 @@ Browser → MediaRecorder.start()
        → If blob.size < 1000 bytes → discard (silence/noise)
        → FormData: { file: blob("audio.webm"), language: session.language }
        → fetch(`${REACT_APP_BACKEND_URL}/api/voice/stt`, { method:POST, headers:{Authorization:Bearer...}, body:fd })
-       → Backend: emergentintegrations.llm.openai.OpenAISpeechToText
+       → Backend: OpenAISpeechToText (Whisper-1)
        → Whisper-1 model → JSON response { text: "transcribed text" }
        → Frontend: submitAnswer(data.text.trim())
 ```
@@ -1848,7 +1850,7 @@ The backend must be running and seeded with demo data before running tests.
 
 | Test | What is tested |
 |---|---|
-| Voice STT no key | Returns 500 when EMERGENT_LLM_KEY not set |
+| Voice STT no key | Returns 500 when LLM_API_KEY not set |
 | Voice STT silent WAV | Tests with generated 1-second silent WAV (16kHz mono) |
 | Resume parse minimal PDF | Tests with reportlab-generated PDF |
 | Onboarding save | POST /profile/onboarding sets all fields correctly |
@@ -1952,12 +1954,7 @@ The demo user has 12 sessions spread over 45 days, covering all exam types:
 
 ### Environment Image
 
-The project uses a base Docker image specified in `.emergent/emergent.yml`:
-```yaml
-env_image_name: "fastapi_react_mongo_shadcn_base_image_cloud_arm:release-11052026-1"
-```
-
-This is an ARM-optimized image pre-installed with the required Python/Node dependencies for cloud deployment on the Emergent platform.
+The project requires Python 3.11+ and Node 18+ with the standard dependencies installed via `pip install -r requirements.txt` and `yarn install`.
 
 ### Production Checklist
 
@@ -1972,7 +1969,7 @@ Before deploying to production, ensure:
 
 3. **Use MongoDB Atlas or secured MongoDB** — Never expose a local MongoDB without auth in production.
 
-4. **Set EMERGENT_LLM_KEY** — Without it, all AI features return mock responses.
+4. **Set LLM_API_KEY** — Without it, all AI features return mock responses.
 
 5. **Frontend build for production**:
    ```bash
@@ -2020,10 +2017,20 @@ Key excluded items: `.env` and all variants, `node_modules/`, `venv/`, `.venv/`,
 - RoleSwitcher widget with live content re-render
 - 6 Railway option in exam types
 
+**Iteration 4 — Phase 1 hardening (July 2026)**
+- Replaced the dead `emergentintegrations` import with a direct `google-generativeai` call (JSON mode) — `call_gemini` now actually reaches Gemini instead of silently falling back to mock every time.
+- Added `POST /api/sessions/{id}/evaluate` — the full-transcript evaluator from `CLAUDE.md` (overall score, 4-way breakdown, per-question feedback, top-3 improvements, one model answer), cached on the session, mock-safe.
+- `InterviewResults.jsx` renders that evaluation as an "Interviewer's Report" section.
+- Resume-aware interviews: parsed resume (skills/projects/experience/education) is now injected into the interview system prompt, with an explicit instruction that at least half the questions must name the candidate's actual projects/skills.
+- Conversation memory: each turn now sends the last 20 messages of transcript history to the model, so it stops re-asking settled questions or forgetting corrections (e.g. the candidate's name) mid-interview.
+- Per-exam-type personas: SSC/Banking/Campus IT/Campus MBA each now get their own panel names and opening line instead of all falling back to the UPSC "civil services" framing.
+- `scripts/tune_prompts.py` — standalone harness to test the resume-parse and evaluation prompts against sample data before touching the UI.
+- Model note: this Gemini key's free tier throttles `gemini-2.0-flash`/`gemini-3.5-flash` hard; `GEMINI_MODEL=gemini-flash-lite-latest` in `backend/.env` is what's actually being used.
+
 ### 🔜 P1 Backlog
 
 - [ ] Real Razorpay integration (test mode — API ready, UI complete, only payment gateway wiring missing)
-- [ ] Hindi TTS for AI interview questions (ElevenLabs or Google Cloud TTS)
+- [ ] Hindi TTS voice quality — currently uses the browser's built-in `speechSynthesis` (best available Indian voice), not a dedicated TTS model
 - [ ] DAF PDF upload and parsing for fully personalized UPSC Personality Test
 - [ ] Emotion Timeline — second-by-second voice confidence graph post-interview
 - [ ] Hostile Interviewer Mode — AI that interrupts, challenges, and pressure-tests

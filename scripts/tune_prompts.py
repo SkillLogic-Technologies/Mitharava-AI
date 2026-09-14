@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / "backend" / ".env")
 
 API_KEY = os.environ.get("LLM_API_KEY", "")
-MODEL = os.environ.get("TUNE_MODEL", "gemini-2.0-flash")
+MODEL = os.environ.get("TUNE_MODEL", "gemini-flash-lite-latest")
 
 # ---------------------------------------------------------------- sample data
 

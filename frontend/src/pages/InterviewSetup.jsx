@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 
 export default function InterviewSetup() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const fileRef = useRef(null);
   const [step, setStep] = useState(1);
   const [creating, setCreating] = useState(false);
@@ -34,6 +34,14 @@ export default function InterviewSetup() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.exam_focus]);
+
+  // Default the interview language to the user's saved preference
+  useEffect(() => {
+    if (user?.preferred_language) {
+      setConfig((c) => ({ ...c, language: user.preferred_language }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.preferred_language]);
 
   const categories = [
     { k: "upsc", icon: "🏛️", title: "UPSC Civil Services" },
@@ -70,6 +78,9 @@ export default function InterviewSetup() {
     try {
       const { data } = await api.post("/resume/parse", fd, { headers: { "Content-Type": "multipart/form-data" }});
       setResume({ name: file.name, parsed: data.parsed });
+      // The account's cached `user` (loaded once at app start) still holds the OLD resume.
+      // Refresh it now so the interview room and video label use THIS newly uploaded resume.
+      await refresh();
       toast.success("Resume parsed. Questions will be personalized.");
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Resume parse failed");
@@ -167,15 +178,32 @@ export default function InterviewSetup() {
               </div>
             </div>
             <div>
-              <div className="text-sm text-foreground/60 mb-2">Language</div>
-              <div className="flex flex-wrap gap-2">
-                {["english", "hindi", "hinglish", "tamil", "bengali", "marathi"].map((l) => (
-                  <button key={l} data-testid={`setup-lang-${l}`} onClick={() => setConfig({ ...config, language: l })}
-                    className={`px-4 py-2 rounded-full text-sm capitalize ${config.language === l ? "gradient-gold-bg text-navy-deep font-semibold" : "border border-gold-subtle text-foreground/80"}`}>
-                    {l}
+              <div className="text-sm text-foreground/60 mb-2">Interview Language</div>
+              <div className="flex gap-3">
+                {[
+                  { k: "english", label: "English" },
+                  { k: "hindi", label: "हिन्दी (Hindi)" },
+                ].map((l) => (
+                  <button key={l.k} data-testid={`setup-lang-${l.k}`} onClick={() => setConfig({ ...config, language: l.k })}
+                    className={`flex-1 px-4 py-3 rounded-xl text-sm font-semibold border-2 transition-all ${config.language === l.k ? "border-gold gradient-gold-bg text-navy-deep" : "border-gold-subtle text-foreground/80"}`}>
+                    {l.label}
                   </button>
                 ))}
               </div>
+              <div className="text-xs text-foreground/50 mt-2">
+                Questions, follow-ups, and feedback will be entirely in {config.language === "hindi" ? "Hindi" : "English"}.
+              </div>
+              <details className="mt-3">
+                <summary className="text-xs text-foreground/50 cursor-pointer hover:text-foreground/70">More languages (experimental)</summary>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {["hinglish", "tamil", "bengali", "marathi"].map((l) => (
+                    <button key={l} data-testid={`setup-lang-${l}`} onClick={() => setConfig({ ...config, language: l })}
+                      className={`px-4 py-2 rounded-full text-sm capitalize ${config.language === l ? "gradient-gold-bg text-navy-deep font-semibold" : "border border-gold-subtle text-foreground/80"}`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </details>
             </div>
             <div>
               <div className="text-sm text-foreground/60 mb-3">Interview Mode</div>
@@ -210,10 +238,14 @@ export default function InterviewSetup() {
             <p className="text-sm text-foreground/60 mb-4">Helps the AI personalize questions to YOUR background.</p>
             <label className="block rounded-2xl border-2 border-dashed border-gold-subtle p-12 text-center cursor-pointer hover:border-gold transition-colors" data-testid="setup-resume-zone">
               <FileText size={40} className="mx-auto text-gold" />
-              <div className="mt-4 text-foreground/80">Drop your Resume here</div>
+              <div className="mt-4 text-foreground/80">
+                {uploading ? "Uploading & analyzing..." : resume ? `✅ ${resume.name}` : "Drop your Resume here"}
+              </div>
               <div className="text-xs text-foreground/60 mt-1">PDF or DOCX, max 5MB</div>
-              <input type="file" className="hidden" accept=".pdf,.docx" />
-              <div className="mt-5 inline-flex px-4 py-2 rounded-full border border-gold text-gold text-sm">Browse Files</div>
+              <input type="file" className="hidden" accept=".pdf,.docx" onChange={handleResume} disabled={uploading} />
+              <div className="mt-5 inline-flex px-4 py-2 rounded-full border border-gold text-gold text-sm">
+                {uploading ? <Loader2 size={14} className="animate-spin" /> : resume ? "Replace file" : "Browse Files"}
+              </div>
             </label>
             <div className="text-center text-xs text-foreground/60 mt-4">
               <button onClick={next} data-testid="setup-resume-skip" className="text-gold hover:underline">Skip for now →</button>

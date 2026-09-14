@@ -10,9 +10,15 @@ export default function InterviewResults() {
   const [session, setSession] = useState(null);
   const [animScore, setAnimScore] = useState(0);
   const [downloading, setDownloading] = useState(false);
+  const [report, setReport] = useState(null);
+  const [reportLoading, setReportLoading] = useState(true);
 
   useEffect(() => {
     api.get(`/sessions/${id}`).then((r) => setSession(r.data)).catch(() => {});
+    api.post(`/sessions/${id}/evaluate`)
+      .then((r) => setReport(r.data))
+      .catch(() => {})
+      .finally(() => setReportLoading(false));
   }, [id]);
 
   const downloadPdf = async () => {
@@ -177,6 +183,45 @@ export default function InterviewResults() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="card-surface p-6" data-testid="detailed-report">
+        <div className="text-xs tracking-[0.2em] text-gold">DETAILED EVALUATION</div>
+        <h3 className="font-display text-xl font-semibold text-foreground mt-1">Interviewer's Report</h3>
+        {reportLoading && <div className="mt-4 text-sm text-foreground/60"><Loader2 size={14} className="inline animate-spin mr-2" />Evaluating your full transcript...</div>}
+        {!reportLoading && !report && <div className="mt-4 text-sm text-foreground/60">Detailed evaluation unavailable for this session.</div>}
+        {report && (
+          <div className="mt-5 space-y-6">
+            {report.is_mock && (
+              <div className="text-xs text-amber-500">⚠ AI key not configured — showing sample evaluation.</div>
+            )}
+            <div className="space-y-3">
+              <div className="text-sm font-semibold text-foreground">Per-Question Feedback</div>
+              {(report.per_question || []).map((p, i) => (
+                <div key={i} className="p-4 rounded-xl border border-gold-subtle">
+                  <div className="text-[10px] tracking-widest text-gold mb-1">Q{i + 1} — {p.q}</div>
+                  <div className="text-sm text-foreground/90">{p.feedback}</div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-foreground mb-2">Top 3 Improvements</div>
+              <ol className="space-y-2">
+                {(report.top_3_improvements || []).map((t, i) => (
+                  <li key={i} className="text-sm text-foreground/90 flex gap-2">
+                    <span className="font-mono text-gold font-bold">{i + 1}.</span> {t}
+                  </li>
+                ))}
+              </ol>
+            </div>
+            {report.model_answer_example && (
+              <div className="p-4 rounded-xl bg-[rgba(184,150,46,0.06)] border border-gold-subtle">
+                <div className="text-sm font-semibold text-foreground mb-1">💡 Model Answer (for your weakest question)</div>
+                <div className="text-sm text-foreground/80">{report.model_answer_example}</div>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border-2 border-gold p-6 bg-[rgba(184,150,46,0.06)]">

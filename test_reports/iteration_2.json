@@ -3,7 +3,7 @@
   "backend_issues": {
     "critical": [],
     "minor": [
-      {"endpoint": "/api/voice/stt", "issue": "Whisper happy-path with 1s silent WAV returns 200 but Emergent Whisper currently transcribes silence to '' (empty string) — acceptable per review spec but worth noting for monitoring real audio behaviour."},
+      {"endpoint": "/api/voice/stt", "issue": "Whisper happy-path with 1s silent WAV returns 200 but Whisper currently transcribes silence to '' (empty string) — acceptable per review spec but worth noting for monitoring real audio behaviour."},
       {"endpoint": "/api/resume/parse", "issue": "5MB hard-cap is documented as 25MB in spec for STT only; resume cap (5MB) is correct but undocumented in API responses — consider returning the limit in the 400 detail."}
     ]
   },
@@ -36,5 +36,5 @@
   "seed_data_creation": "No new persistent seed data. Ephemeral test artifacts (silent WAV, reportlab PDF) generated in-memory per test. The demo user's profile is now mutated with onboarding fields, resume_parsed_data, and resume_filename — tests are idempotent but state-mutating.",
   "retest_needed": false,
   "main_agent_can_self_test": true,
-  "context_for_next_testing_agent": "All 4 deferred endpoints (voice/stt, resume/parse, profile/onboarding, sessions/{id}/report.pdf) PASS. Combined test suite is now /app/backend/tests/ with two files (test_mitharva_backend.py for original 31, test_deferred_endpoints.py for new 13). Run `pytest backend/tests/ -v` to retest. STT, resume parse, and Gemini calls go through real Emergent LLM key; allow ~5-10s per resume parse. Demo user's plan gets upgraded to 'pro' and onboarding fields are written — re-running tests is safe but observe state mutations. Razorpay is the only remaining MOCKED integration."
+  "context_for_next_testing_agent": "All 4 deferred endpoints (voice/stt, resume/parse, profile/onboarding, sessions/{id}/report.pdf) PASS. Combined test suite is now /app/backend/tests/ with two files (test_mitharva_backend.py for original 31, test_deferred_endpoints.py for new 13). Run `pytest backend/tests/ -v` to retest. STT, resume parse, and Gemini calls go through real LLM API key; allow ~5-10s per resume parse. Demo user's plan gets upgraded to 'pro' and onboarding fields are written — re-running tests is safe but observe state mutations. Razorpay is the only remaining MOCKED integration."
 }
