@@ -4,6 +4,7 @@ import { Mic, MicOff, Pause, Play, X, Keyboard as KeyboardIcon, Camera as Camera
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useLiveVoice } from "@/lib/useLiveVoice";
 
 const INTERVIEWERS = [
   { id: "chair", name: "Shri R.K. Sharma", role: "UPSC Chairman (IAS Retd.)", initials: "RK", color: "from-amber-400 to-yellow-700" },
@@ -38,6 +39,82 @@ export default function InterviewRoom() {
   const [endConfirm, setEndConfirm] = useState(false);
   const [qIndex, setQIndex] = useState(0);
   const [whisperMode, setWhisperMode] = useState(true); // Use Whisper STT by default
+  const [liveVoiceMode, setLiveVoiceMode] = useState(false); // Gemini Live — continuous, no tap-to-talk
+  const liveTurnBufRef = useRef({ user: "", assistant: "" });
+
+  const liveVoice = useLiveVoice({
+    onReady: () => {
+      setOrbState("listening");
+      toast.success("Live voice connected");
+    },
+    onState: (state) => {
+      // "idle" from the bridge means the interviewer's turn just finished —
+      // mic keeps streaming, so from the candidate's POV that means "listening".
+      if (state === "idle") setOrbState("listening");
+    },
+    onTranscript: (msg) => {
+      const buf = liveTurnBufRef.current;
+      if (msg.role === "user") {
+        setOrbState("listening");
+        buf.user = (buf.user ? buf.user + " " : "") + msg.text;
+        return;
+      }
+      // assistant speaking — flush any pending user turn first, then
+      // append/append-merge the assistant's growing sentence into one bubble.
+      setOrbState("speaking");
+      if (buf.user.trim()) {
+        setTranscript((t) => [...t, { role: "user", text: buf.user.trim(), ts: Date.now() }]);
+        buf.user = "";
+      }
+      buf.assistant = (buf.assistant ? buf.assistant + " " : "") + msg.text;
+      setTranscript((t) => {
+        const last = t[t.length - 1];
+        const speakerName = INTERVIEWERS[currentSpeaker]?.name || INTERVIEWERS[0].name;
+        if (last && last.role === "assistant" && last._liveTurn) {
+          const copy = [...t];
+          copy[copy.length - 1] = { ...last, text: buf.assistant.trim() };
+          return copy;
+        }
+        return [...t, { role: "assistant", speaker: speakerName, text: buf.assistant.trim(), ts: Date.now(), _liveTurn: true }];
+      });
+    },
+    onEvaluation: ({ evaluation, isInterviewComplete }) => {
+      liveTurnBufRef.current = { user: "", assistant: "" };
+      setLatestEval(evaluation || null);
+      setQIndex((q) => q + 1);
+      setCurrentSpeaker((s) => (s + 1) % INTERVIEWERS.length);
+      setTranscript((t) => {
+        if (!t.length) return t;
+        const copy = [...t];
+        const last = copy[copy.length - 1];
+        if (last && last.role === "assistant") copy[copy.length - 1] = { ...last, evaluation, _liveTurn: false };
+        return copy;
+      });
+      if (isInterviewComplete) setTimeout(() => endInterview(), 5000);
+    },
+    onError: (message) => {
+      toast.error(`Live voice: ${message}`);
+      setLiveVoiceMode(false);
+      setOrbState("idle");
+    },
+  });
+
+  const toggleLiveVoice = async () => {
+    if (liveVoiceMode) {
+      liveVoice.disconnect();
+      setLiveVoiceMode(false);
+      setOrbState("idle");
+      return;
+    }
+    if (!streamRef.current) {
+      toast.error("Microphone not available. Switch to text mode.");
+      return;
+    }
+    setWhisperMode(false);
+    setLiveVoiceMode(true);
+    setOrbState("processing");
+    await liveVoice.connect(id, streamRef.current);
+  };
 
   // Load session
   useEffect(() => {
@@ -86,6 +163,7 @@ export default function InterviewRoom() {
       window.speechSynthesis?.cancel();
       try { recognitionRef.current?.stop(); } catch {}
       try { if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop(); } catch {}
+      liveVoice.disconnect();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
@@ -241,6 +319,8 @@ export default function InterviewRoom() {
     try {
       window.speechSynthesis?.cancel();
       stopListening();
+      liveVoice.disconnect();
+      setLiveVoiceMode(false);
       await api.post("/sessions/complete", {
         session_id: id,
         transcript: transcript.map(t => ({ role: t.role, text: t.text, speaker: t.speaker, evaluation: t.evaluation })),
@@ -368,8 +448,8 @@ export default function InterviewRoom() {
             ) : (
               <>
                 <button
-                  onClick={orbState === "listening" ? stopListening : startListening}
-                  disabled={orbState === "speaking" || orbState === "processing" || paused}
+                  onClick={liveVoiceMode ? undefined : (orbState === "listening" ? stopListening : startListening)}
+                  disabled={liveVoiceMode || orbState === "speaking" || orbState === "processing" || paused}
                   data-testid="voice-orb"
                   className={`disabled:opacity-50 ${orbState === "listening" ? "orb-listening" : orbState === "processing" ? "orb-processing" : orbState === "speaking" ? "orb-speaking" : "orb-idle"}`}
                   aria-label="Voice control"
@@ -393,8 +473,11 @@ export default function InterviewRoom() {
                   <button onClick={() => setTextMode(true)} data-testid="switch-text" className="px-4 py-2 rounded-full border border-white/20 text-xs hover:border-gold hover:text-gold inline-flex items-center gap-1">
                     <KeyboardIcon size={12} /> Text Mode
                   </button>
-                  <button onClick={() => setWhisperMode(!whisperMode)} data-testid="toggle-whisper" className={`px-4 py-2 rounded-full text-xs inline-flex items-center gap-1 ${whisperMode ? "border border-gold text-gold" : "border border-white/20 text-white/70 hover:border-gold hover:text-gold"}`}>
+                  <button onClick={() => setWhisperMode(!whisperMode)} disabled={liveVoiceMode} data-testid="toggle-whisper" className={`px-4 py-2 rounded-full text-xs inline-flex items-center gap-1 disabled:opacity-40 ${whisperMode ? "border border-gold text-gold" : "border border-white/20 text-white/70 hover:border-gold hover:text-gold"}`}>
                     <Sparkles size={12} /> {whisperMode ? "Whisper STT" : "Browser STT"}
+                  </button>
+                  <button onClick={toggleLiveVoice} data-testid="toggle-live-voice" className={`px-4 py-2 rounded-full text-xs inline-flex items-center gap-1 ${liveVoiceMode ? "border border-emerald-400 text-emerald-400" : "border border-white/20 text-white/70 hover:border-emerald-400 hover:text-emerald-400"}`}>
+                    <Sparkles size={12} /> {liveVoiceMode ? "Live Voice: ON" : "Live Voice (Beta)"}
                   </button>
                 </div>
               </>

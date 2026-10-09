@@ -19,6 +19,11 @@ from datetime import datetime, timezone, timedelta
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Imported AFTER load_dotenv() — voice_live reads GEMINI_API_KEY from the
+# environment at import time, so importing it any earlier would silently
+# capture an empty string forever.
+import voice_live
+
 # Config
 MONGO_URL = os.environ['MONGO_URL']
 DB_NAME = os.environ['DB_NAME']
@@ -69,6 +74,7 @@ class ProfileUpdate(BaseModel):
     daf_hobbies: Optional[str] = None
     daf_service_preference: Optional[str] = None
     linkedin: Optional[str] = None
+    interview_voice: Optional[str] = None  # one of voice_live.VOICE_OPTIONS keys
 
 
 class SessionCreate(BaseModel):
@@ -909,6 +915,35 @@ async def root():
 async def health():
     return {"status": "ok"}
 
+
+# ============== LIVE VOICE (Gemini Live bridge) ==============
+@api_router.get("/voice/options")
+async def voice_options():
+    """Named voices the user can pick for their interviewer in Profile /
+    Interview Setup. See voice_live.VOICE_OPTIONS for the underlying mapping."""
+    return {
+        "voices": [
+            {"key": "formal_male", "label": "Formal — Male"},
+            {"key": "formal_female", "label": "Formal — Female"},
+            {"key": "warm_male", "label": "Warm — Male"},
+            {"key": "warm_female", "label": "Warm — Female"},
+            {"key": "stern_male", "label": "Stern — Male"},
+        ],
+        "configured": bool(voice_live.GEMINI_API_KEY),
+    }
+
+
+async def _get_user_by_id(user_id: str) -> Optional[dict]:
+    return await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+
+
+async def _get_session_by_id(session_id: str, user_id: str) -> Optional[dict]:
+    if not session_id:
+        return None
+    return await db.sessions.find_one({"id": session_id, "user_id": user_id}, {"_id": 0})
+
+
+voice_live.register(api_router, db, build_interview_system_prompt, _get_user_by_id, _get_session_by_id)
 
 app.include_router(api_router)
 
