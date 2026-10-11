@@ -1,0 +1,46 @@
+﻿yarn run v1.22.22
+$ craco start
+node.exe : (node:13396) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 
+'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+At C:\Users\Click\AppData\Roaming\npm\yarn.ps1:24 char:5
++     & "node$exe"  "$basedir/node_modules/yarn/bin/yarn.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:13396) [D...ewares' option.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:13396) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option 
+is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+
+(node:13396) [DEP_WEBPACK_COMPILATION_ASSETS] DeprecationWarning: Compilation.assets will be frozen in future, all 
+modifications are deprecated.
+BREAKING CHANGE: No more changes should happen to Compilation.assets after sealing the Compilation.
+		Do changes to assets earlier, e. g. in Compilation.hooks.processAssets.
+		Make sure to select an appropriate stage from Compilation.PROCESS_ASSETS_STAGE_*.
+Compiled with warnings.
+
+[eslint] 
+src\lib\useLiveVoice.js
+  Line 172:6:  React Hook useCallback has a missing dependency: '_enqueuePlayback'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CurrentAffairs.jsx
+  Line 36:6:  React Hook useEffect has a missing dependency: 'relevantCats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\InterviewRoom.jsx
+  Line 269:6:  React Hook useCallback has a missing dependency: 'submitAnswer'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\lib\useLiveVoice.js
+  Line 172:6:  React Hook useCallback has a missing dependency: '_enqueuePlayback'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CurrentAffairs.jsx
+  Line 36:6:  React Hook useEffect has a missing dependency: 'relevantCats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\InterviewRoom.jsx
+  Line 269:6:  React Hook useCallback has a missing dependency: 'submitAnswer'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning

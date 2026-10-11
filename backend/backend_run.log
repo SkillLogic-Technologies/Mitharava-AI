@@ -1,0 +1,10 @@
+INFO:     Started server process [4616]
+INFO:     Waiting for application startup.
+2026-09-14 23:58:23,647 - mitharva - INFO - Seeded 30 questions
+2026-09-14 23:58:23,668 - mitharva - INFO - Seeded 10 current affairs
+2026-09-14 23:58:24,074 - mitharva - INFO - Seeded demo user with 12 sessions
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55641 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55643 - "GET /api/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55648 - "GET /api/voice/options HTTP/1.1" 200 OK

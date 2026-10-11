@@ -1,0 +1,51 @@
+INFO:     Started server process [16252]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55657 - "GET /api/voice/options HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58390 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51534 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64300 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62275 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "OPTIONS /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56476 - "OPTIONS /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54497 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60366 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53495 - "OPTIONS /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53495 - "POST /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53495 - "OPTIONS /api/sessions/3e19d67f-e20d-4221-9e21-7e388fe61962 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56847 - "OPTIONS /api/sessions/3e19d67f-e20d-4221-9e21-7e388fe61962 HTTP/1.1" 200 OK
+2026-10-09 13:16:00,963 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:56438 - "GET /api/sessions/3e19d67f-e20d-4221-9e21-7e388fe61962 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56847 - "GET /api/sessions/3e19d67f-e20d-4221-9e21-7e388fe61962 HTTP/1.1" 200 OK
+INFO:     ('127.0.0.1', 63323) - "WebSocket /api/voice/live" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:52528 - "OPTIONS /api/sessions/complete HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52528 - "POST /api/sessions/complete HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52528 - "GET /api/sessions/3e19d67f-e20d-4221-9e21-7e388fe61962 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52528 - "GET /api/sessions/3e19d67f-e20d-4221-9e21-7e388fe61962 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54330 - "OPTIONS /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59527 - "OPTIONS /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54330 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59527 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61914 - "POST /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61914 - "OPTIONS /api/sessions/8a3ec824-2df4-4a52-a6ca-aa020fcd9417 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58691 - "OPTIONS /api/sessions/8a3ec824-2df4-4a52-a6ca-aa020fcd9417 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50715 - "GET /api/sessions/8a3ec824-2df4-4a52-a6ca-aa020fcd9417 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62028 - "GET /api/sessions/8a3ec824-2df4-4a52-a6ca-aa020fcd9417 HTTP/1.1" 200 OK
+INFO:     ('127.0.0.1', 54912) - "WebSocket /api/voice/live" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:62008 - "POST /api/sessions/complete HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62008 - "GET /api/sessions/8a3ec824-2df4-4a52-a6ca-aa020fcd9417 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51822 - "GET /api/sessions/8a3ec824-2df4-4a52-a6ca-aa020fcd9417 HTTP/1.1" 200 OK
